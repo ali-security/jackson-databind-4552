@@ -11,6 +11,7 @@ import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.databind.deser.*;
 import com.fasterxml.jackson.databind.deser.impl.ReadableObjectId;
 import com.fasterxml.jackson.databind.deser.impl.TypeWrappedDeserializer;
+import com.fasterxml.jackson.databind.exc.InvalidDefinitionException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.fasterxml.jackson.databind.introspect.Annotated;
@@ -380,6 +381,23 @@ public abstract class DeserializationContext
      */
     public final JavaType constructType(Class<?> cls) {
         return _config.constructType(cls);
+    }
+
+     /**
+     * Helper method called to indicate problem in POJO (serialization) definitions or settings
+     * regarding specific Java type, unrelated to actual JSON content to map.
+     * Default behavior is to construct and throw a {@link JsonMappingException}.
+     *
+     * @since 2.9
+     */
+    public <T> T reportBadTypeDefinition(BeanDescription bean,
+            String msg) throws JsonMappingException {
+        String beanDesc = "N/A";
+        if (bean != null) {
+            beanDesc = (bean.getBeanClass()).getName();
+        }
+        msg = String.format("Invalid type definition for type %s: %s", beanDesc,msg);
+        throw InvalidDefinitionException.from(msg, bean, null);
     }
 
     /**

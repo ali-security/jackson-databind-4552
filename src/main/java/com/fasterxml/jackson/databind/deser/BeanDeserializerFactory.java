@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.databind.util.ArrayBuilders;
 import com.fasterxml.jackson.databind.util.ClassUtil;
 import com.fasterxml.jackson.databind.util.SimpleBeanPropertyDefinition;
+import com.fasterxml.jackson.databind.jsontype.impl.SubTypeValidator;
 
 /**
  * Concrete deserializer factory class that adds full Bean deserializer
@@ -164,6 +165,9 @@ public class BeanDeserializerFactory
         if (!isPotentialBeanType(type.getRawClass())) {
             return null;
         }
+        // For checks like [databind#1599]
+        _validateSubType(ctxt, type, beanDesc);
+        
         // Use generic bean introspection to build deserializer
         return buildBeanDeserializer(ctxt, type, beanDesc);
     }
@@ -848,5 +852,15 @@ public class BeanDeserializerFactory
             }
         }
         return status;
+    }
+
+    /**
+     * @since 2.8.11
+     */
+    protected void _validateSubType(DeserializationContext ctxt, JavaType type,
+            BeanDescription beanDesc)
+        throws JsonMappingException
+    {
+        SubTypeValidator.instance().validateSubType(ctxt, type, beanDesc);
     }
 }
